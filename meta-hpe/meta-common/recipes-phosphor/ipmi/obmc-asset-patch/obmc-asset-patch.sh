@@ -61,7 +61,7 @@ function yww_convert() {
   echo "$year-$month-$day - $buildtime"
 }
 
-id=$(( (("$(devmem 0xd1000002 8)" << 8) | "$(devmem 0xd1000001 8)") & 0xfff ))
+id=$(( (("$(devmem 0xd1000302 8)" << 8) | "$(devmem 0xd1000301 8)") & 0xfff ))
 case $id in
   $((0x204))) model="DL360 Gen10";;
   $((0x205))) model="DL380 Gen10";;
