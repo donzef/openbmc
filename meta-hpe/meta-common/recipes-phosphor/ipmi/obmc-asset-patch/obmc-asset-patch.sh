@@ -63,11 +63,14 @@ function yww_convert() {
 
 id=$(( (("$(devmem 0xd1000302 8)" << 8) | "$(devmem 0xd1000301 8)") & 0xfff ))
 case $id in
-  $((0x204))) model="DL360 Gen10";;
-  $((0x205))) model="DL380 Gen10";;
+  #$((0x204))) model="DL360 Gen10";;
+  $((0x204))) model="DL360 Gen99";;
+  #$((0x205))) model="DL380 Gen10";;
+  $((0x205))) model="DL380 Gen99";;
   $((0x225))) model="DL360 Gen10 Plus";;
   $((0x226))) model="DL380 Gen10 Plus";;
-  *) model="DL380 Gen10";;
+  #*) model="DL380 Gen10";;
+  *) model="DL380 GenDefault";;
 esac
 echo "model: set to $model"
 busctl set-property xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system xyz.openbmc_project.Inventory.Item PrettyName s "$model"
