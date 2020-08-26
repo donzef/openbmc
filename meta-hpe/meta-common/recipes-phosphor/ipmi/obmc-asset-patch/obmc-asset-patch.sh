@@ -63,7 +63,7 @@ function yww_convert() {
 
 id=$(( (("$(devmem 0xd1000302 8)" << 8) | "$(devmem 0xd1000301 8)") & 0xfff ))
 case $id in
-  $((0x204))) model="DL360 Gen10";;
+  $((0x204))) model="MyDL360 Gen99";;
   $((0x205))) model="DL380 Gen10";;
   $((0x225))) model="DL360 Gen10 Plus";;
   $((0x226))) model="DL380 Gen10 Plus";;
