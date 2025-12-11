@@ -312,6 +312,8 @@ def wic_init_parser_create(subparser):
 
     subparser.add_argument("-o", "--outdir", dest="outdir", default='.',
                       help="name of directory to create image in")
+    subparser.add_argument("-w", "--workdir",
+                      help="temporary workdir to use for intermediate files")
     subparser.add_argument("-e", "--image-name", dest="image_name",
                       help="name of the image to use the artifacts from "
                            "e.g. core-image-sato")
@@ -344,6 +346,8 @@ def wic_init_parser_create(subparser):
                       default=False, help="output debug information")
     subparser.add_argument("-i", "--imager", dest="imager",
                       default="direct", help="the wic imager plugin")
+    subparser.add_argument("--extra-space", type=int, dest="extra_space",
+                      default=0, help="additional free disk space to add to the image")
     return
 
 

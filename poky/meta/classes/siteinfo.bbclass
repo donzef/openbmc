@@ -45,6 +45,7 @@ def siteinfo_data_for_machine(arch, os, d):
         "mipsisa32r6": "endian-big bit-32 mips-common",
         "mipsisa32r6el": "endian-little bit-32 mips-common",
         "powerpc": "endian-big bit-32 powerpc-common",
+        "powerpcle": "endian-little bit-32 powerpc-common",
         "nios2": "endian-little bit-32 nios2-common",
         "powerpc64": "endian-big bit-64 powerpc-common",
         "powerpc64le": "endian-little bit-64 powerpc-common",
@@ -54,7 +55,9 @@ def siteinfo_data_for_machine(arch, os, d):
         "riscv32": "endian-little bit-32 riscv-common",
         "riscv64": "endian-little bit-64 riscv-common",
         "sh3": "endian-little bit-32 sh-common",
+        "sh3eb": "endian-big bit-32 sh-common",
         "sh4": "endian-little bit-32 sh-common",
+        "sh4eb": "endian-big bit-32 sh-common",
         "sparc": "endian-big bit-32",
         "viac3": "endian-little bit-32 ix86-common",
         "x86_64": "endian-little", # bitinfo specified in targetinfo
@@ -100,6 +103,8 @@ def siteinfo_data_for_machine(arch, os, d):
         "mipsisa64r6el-linux-gnun32": "mipsisa32r6el-linux bit-32",
         "powerpc-linux": "powerpc32-linux",
         "powerpc-linux-musl": "powerpc-linux powerpc32-linux",
+        "powerpcle-linux": "powerpc32-linux",
+        "powerpcle-linux-musl": "powerpc-linux powerpc32-linux",
         "powerpc-linux-gnuspe": "powerpc-linux powerpc32-linux",
         "powerpc-linux-muslspe": "powerpc-linux powerpc32-linux",
         "powerpc64-linux-gnuspe": "powerpc-linux powerpc64-linux",
@@ -171,17 +176,39 @@ python () {
         bb.fatal("Please add your architecture to siteinfo.bbclass")
 }
 
-def siteinfo_get_files(d, sysrootcache = False):
+# Layers with siteconfig need to add a replacement path to this variable so the
+# sstate isn't path specific
+SITEINFO_PATHVARS = "COREBASE"
+
+def siteinfo_get_files(d, sysrootcache=False):
     sitedata = siteinfo_data(d)
-    sitefiles = ""
+    sitefiles = []
+    searched = []
     for path in d.getVar("BBPATH").split(":"):
         for element in sitedata:
             filename = os.path.join(path, "site", element)
             if os.path.exists(filename):
-                sitefiles += filename + " "
+                searched.append(filename + ":True")
+                sitefiles.append(filename)
+            else:
+                searched.append(filename + ":False")
+
+    # Have to parameterise out hardcoded paths such as COREBASE for the main site files
+    for var in d.getVar("SITEINFO_PATHVARS").split():
+        searched2 = []
+        replace = os.path.normpath(d.getVar(var))
+        for s in searched:
+            searched2.append(s.replace(replace, "${" + var + "}"))
+        searched = searched2
+
+    if bb.data.inherits_class('native', d) or bb.data.inherits_class('cross', d) or bb.data.inherits_class('crosssdk', d):
+        # We need sstate sigs for native/cross not to vary upon arch so we can't depend on the site files.
+        # In future we may want to depend upon all site files?
+        # This would show up as breaking sstatetests.SStateTests.test_sstate_32_64_same_hash for example
+        searched = []
 
     if not sysrootcache:
-        return sitefiles
+        return sitefiles, searched
 
     # Now check for siteconfig cache files in sysroots
     path_siteconfig = d.getVar('SITECONFIG_SYSROOTCACHE')
@@ -190,8 +217,8 @@ def siteinfo_get_files(d, sysrootcache = False):
             if not i.endswith("_config"):
                 continue
             filename = os.path.join(path_siteconfig, i)
-            sitefiles += filename + " "
-    return sitefiles
+            sitefiles.append(filename)
+    return sitefiles, searched
 
 #
 # Make some information available via variables

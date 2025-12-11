@@ -1,7 +1,7 @@
 SUMMARY = "C++ bindings for systemd dbus APIs"
 DESCRIPTION = "C++ bindings for systemd dbus APIs."
 
-inherit meson
+inherit pkgconfig meson
 inherit python3native
 include sdbusplus-rev.inc
 
@@ -15,6 +15,10 @@ DEPENDS += " \
         ${PYTHON_PN}-mako-native \
         ${PYTHON_PN}-pyyaml-native \
         boost \
-        googletest \
         systemd \
+        "
+
+EXTRA_OEMESON:append = " \
+        -Dtests=disabled \
+        -Dexamples=disabled \
         "
